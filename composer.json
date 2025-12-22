@@ -2,7 +2,20 @@
     "name": "rcsofttech/audit-trail-bundle",
     "description": "A Symfony bundle that automatically tracks and stores Doctrine ORM entity changes for audit logging and compliance.",
     "type": "symfony-bundle",
-    "license": "proprietary",
+    "license": "MIT",
+    "keywords": [
+        "symfony",
+        "audit",
+        "log",
+        "doctrine",
+        "entity",
+        "tracking",
+        "history"
+    ],
+    "support": {
+        "issues": "https://github.com/rcsofttech85/AuditTrailBundle/issues",
+        "source": "https://github.com/rcsofttech/AuditTrailBundle"
+    },
     "autoload": {
         "psr-4": {
             "Rcsofttech\\AuditTrailBundle\\": "src/"
@@ -10,7 +23,7 @@
     },
     "authors": [
         {
-            "name": "rahul chavan",
+            "name": "Rahul Chavan",
             "email": "rcsoftech85@gmail.com"
         }
     ],
@@ -27,7 +40,9 @@
     },
     "require-dev": {
         "phpunit/phpunit": "^12.5",
-        "symfony/phpunit-bridge": "^8.0"
+        "symfony/phpunit-bridge": "^8.0",
+        "phpstan/phpstan": "^2.0",
+        "friendsofphp/php-cs-fixer": "^3.60"
     },
     "suggest": {
         "easycorp/easyadmin-bundle": "Required to use the provided AuditLogCrudController for a built-in dashboard."
