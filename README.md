@@ -128,6 +128,36 @@ The bundle provides a command to cleanup old audit logs from the database:
 php bin/console audit:cleanup
 ```
 
+## EasyAdmin Integration
+
+This bundle comes with built-in support for [EasyAdmin](https://github.com/EasyCorp/EasyAdminBundle), allowing you to instantly view and filter audit logs in your dashboard.
+
+### 1. Install EasyAdmin
+If you haven't already, install the bundle:
+
+```bash
+composer require easycorp/easyadmin-bundle
+```
+
+### 2. Register the Controller
+Add the `AuditLogCrudController` to your `DashboardController`:
+
+```php
+use Rcsofttech\AuditTrailBundle\Controller\Admin\AuditLogCrudController;
+use EasyCorp\Bundle\EasyAdminBundle\Config\MenuItem;
+
+public function configureMenuItems(): iterable
+{
+    yield MenuItem::linkToDashboard('Dashboard', 'fa fa-home');
+    
+    // Add the Audit Log menu item
+    yield MenuItem::linkToCrud('Audit Logs', 'fas fa-history', \Rcsofttech\AuditTrailBundle\Entity\AuditLog::class)
+        ->setController(AuditLogCrudController::class);
+}
+```
+
+That's it! You now have a read-only view of your audit logs with filtering by Entity, Action, User, and Date.
+
 ## Advanced Usage
 
 ### Using the Queue Transport
