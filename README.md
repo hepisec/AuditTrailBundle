@@ -13,7 +13,7 @@ A lightweight, high-performance Symfony bundle that automatically tracks and sto
 -   **Zero Configuration**: Works out of the box with sensible defaults.
 -   **Multiple Transports**:
     -   **Doctrine**: Store audit logs directly in your database (default).
-    -   **HTTP**: Send audit logs to an external API (e.g., ELK, Splunk).
+    -   **HTTP**: Send audit logs to an external API.
     -   **Queue**: Dispatch audit logs via Symfony Messenger for async processing.
     -   **Chain**: Use multiple transports simultaneously.
 -   **User Context**: Automatically captures the current user, IP address, and User Agent.
@@ -178,12 +178,12 @@ To offload audit logging to a worker, enable the queue transport and configure S
                 enabled: true
     ```
 
-2.  **Messenger Routing**:
+2.  **Messenger Transport**:
     ```yaml
     framework:
         messenger:
-            routing:
-                'Rcsofttech\AuditTrailBundle\Message\AuditLogMessage': async
+            transports:
+                audit_trail: '%env(MESSENGER_TRANSPORT_DSN)%'
     ```
 
 ### Custom User Resolution
