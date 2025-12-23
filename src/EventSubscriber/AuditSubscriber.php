@@ -10,8 +10,8 @@ use Rcsofttech\AuditTrailBundle\Contract\AuditTransportInterface;
 use Rcsofttech\AuditTrailBundle\Entity\AuditLog;
 use Rcsofttech\AuditTrailBundle\Service\AuditService;
 
-#[AsDoctrineListener(event: Events::onFlush)]
-#[AsDoctrineListener(event: Events::postFlush)]
+#[AsDoctrineListener(event: Events::onFlush, priority: 1000)]
+#[AsDoctrineListener(event: Events::postFlush, priority: 1000)]
 final class AuditSubscriber
 {
     /**
@@ -19,14 +19,28 @@ final class AuditSubscriber
      */
     private array $scheduledAudits = [];
 
+    /**
+     * @var array<array{entity: object, data: array<string, mixed>}>
+     */
+    private array $pendingDeletions = [];
+
+    private bool $isFlushing = false;
+
     public function __construct(
         private readonly AuditService $auditService,
         private readonly AuditTransportInterface $transport,
+        private readonly bool $enableSoftDelete = true,
+        private readonly bool $enableHardDelete = true,
+        private readonly string $softDeleteField = 'deletedAt',
     ) {
     }
 
     public function onFlush(OnFlushEventArgs $args): void
     {
+        if ($this->isFlushing) {
+            return;
+        }
+
         $em = $args->getObjectManager();
         $uow = $em->getUnitOfWork();
 
@@ -49,7 +63,6 @@ final class AuditSubscriber
                 'uow' => $uow,
             ]);
 
-            // Store for postFlush (ID update + other transports)
             $this->scheduledAudits[] = ['entity' => $entity, 'audit' => $audit];
         }
 
@@ -62,7 +75,17 @@ final class AuditSubscriber
             $changeSet = $uow->getEntityChangeSet($entity);
             [$old, $new] = $this->extractChanges($changeSet);
 
-            $audit = $this->auditService->createAuditLog($entity, AuditLog::ACTION_UPDATE, $old, $new);
+            $action = AuditLog::ACTION_UPDATE;
+
+            // Detect Restore (Manual updates)
+            if ($this->enableSoftDelete && \array_key_exists($this->softDeleteField, $changeSet)) {
+                $deletedAtChange = $changeSet[$this->softDeleteField];
+                if (null !== $deletedAtChange[0] && null === $deletedAtChange[1]) {
+                    $action = AuditLog::ACTION_RESTORE;
+                }
+            }
+
+            $audit = $this->auditService->createAuditLog($entity, $action, $old, $new);
 
             $this->transport->send($audit, [
                 'phase' => 'on_flush',
@@ -70,54 +93,90 @@ final class AuditSubscriber
                 'uow' => $uow,
             ]);
 
-            // Store for postFlush (other transports)
             $this->scheduledAudits[] = ['entity' => $entity, 'audit' => $audit];
         }
 
-        // DELETE
+        // DELETE - Defer processing to postFlush to detect Soft Deletes (Gedmo interception)
         foreach ($uow->getScheduledEntityDeletions() as $entity) {
             if (!$this->shouldProcessEntity($entity)) {
                 continue;
             }
-
-            $audit = $this->auditService->createAuditLog(
-                $entity,
-                AuditLog::ACTION_DELETE,
-                $this->auditService->getEntityData($entity),
-                null
-            );
-
-            $this->transport->send($audit, [
-                'phase' => 'on_flush',
-                'em' => $em,
-                'uow' => $uow,
-            ]);
-
-            // Store for postFlush (other transports)
-            $this->scheduledAudits[] = ['entity' => $entity, 'audit' => $audit];
+            // Capture original data now
+            $this->pendingDeletions[] = [
+                'entity' => $entity,
+                'data' => $this->auditService->getEntityData($entity),
+            ];
         }
     }
 
     public function postFlush(PostFlushEventArgs $args): void
     {
-        if (empty($this->scheduledAudits)) {
+        if ($this->isFlushing) {
             return;
         }
 
-        $scheduledAudits = $this->scheduledAudits;
-        $this->scheduledAudits = [];
-
         $em = $args->getObjectManager();
+        $hasNewAudits = false;
 
-        foreach ($scheduledAudits as $scheduled) {
-            $entity = $scheduled['entity'];
-            $audit = $scheduled['audit'];
+        // Process Deferred Deletions
+        foreach ($this->pendingDeletions as $pending) {
+            $entity = $pending['entity'];
+            $oldData = $pending['data'];
+            $action = null;
 
-            $this->transport->send($audit, [
+            if (!$em->contains($entity)) {
+                // Entity is detached -> Hard Delete
+                if ($this->enableHardDelete) {
+                    $action = AuditLog::ACTION_DELETE;
+                }
+            } else {
+                // Entity is still managed -> Soft Delete
+                // If it was scheduled for deletion but is now managed, it was intercepted (e.g., by Gedmo)
+                if ($this->enableSoftDelete) {
+                    $action = AuditLog::ACTION_SOFT_DELETE;
+                }
+            }
+
+            if ($action) {
+                $newData = (AuditLog::ACTION_SOFT_DELETE === $action) ? $this->auditService->getEntityData($entity) : null;
+
+                $audit = $this->auditService->createAuditLog(
+                    $entity,
+                    $action,
+                    $oldData,
+                    $newData
+                );
+
+                // Explicitly persist the new audit log because the main transaction is closed
+                $em->persist($audit);
+                $hasNewAudits = true;
+
+                $this->transport->send($audit, [
+                    'phase' => 'post_flush',
+                    'em' => $em,
+                    'entity' => $entity,
+                ]);
+            }
+        }
+        $this->pendingDeletions = [];
+
+        // Process Scheduled Audits (ID updates for inserts)
+        foreach ($this->scheduledAudits as $scheduled) {
+            $this->transport->send($scheduled['audit'], [
                 'phase' => 'post_flush',
                 'em' => $em,
-                'entity' => $entity,
+                'entity' => $scheduled['entity'],
             ]);
+        }
+        $this->scheduledAudits = [];
+
+        if ($hasNewAudits) {
+            $this->isFlushing = true;
+            try {
+                $em->flush();
+            } finally {
+                $this->isFlushing = false;
+            }
         }
     }
 

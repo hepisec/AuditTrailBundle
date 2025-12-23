@@ -23,6 +23,10 @@ final class AuditLog
     public const string ACTION_UPDATE = 'update';
     public const string ACTION_DELETE = 'delete';
 
+    public const string ACTION_SOFT_DELETE = 'soft_delete';
+
+    public const string ACTION_RESTORE = 'restore';
+
     #[ORM\Id, ORM\GeneratedValue, ORM\Column]
     public private(set) ?int $id = null;
 

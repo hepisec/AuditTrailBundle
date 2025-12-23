@@ -109,7 +109,13 @@ class AuditService
     ): AuditLog {
         $auditLog = new AuditLog();
         $auditLog->setEntityClass($entity::class);
-        $auditLog->setEntityId($this->getEntityId($entity));
+
+        $entityId = $this->getEntityId($entity);
+        if (self::PENDING_ID === $entityId && AuditLog::ACTION_DELETE === $action && null !== $oldValues) {
+            $entityId = $this->extractIdFromValues($entity, $oldValues) ?? self::PENDING_ID;
+        }
+        $auditLog->setEntityId($entityId);
+
         $auditLog->setAction($action);
         $auditLog->setOldValues($oldValues);
         $auditLog->setNewValues($newValues);
@@ -308,6 +314,13 @@ class AuditService
             $ids = $meta->getIdentifierValues($entity);
 
             if (empty($ids)) {
+                // Fallback: Try getId() method directly
+                if (method_exists($entity, 'getId')) {
+                    $id = $entity->getId();
+
+                    return null !== $id ? (string) $id : self::PENDING_ID;
+                }
+
                 return self::PENDING_ID;
             }
 
@@ -321,9 +334,45 @@ class AuditService
                 ? implode(self::ENTITY_ID_SEPARATOR, $idValues)
                 : self::PENDING_ID;
         } catch (\Throwable $e) {
+            // Fallback: Try getId() method directly on exception
+            if (method_exists($entity, 'getId')) {
+                try {
+                    $id = $entity->getId();
+
+                    return null !== $id ? (string) $id : self::PENDING_ID;
+                } catch (\Throwable) {
+                    // Ignore fallback error
+                }
+            }
+
             $this->logError('Failed to get entity ID', $e, ['entity' => $entity::class]);
 
             return self::PENDING_ID;
+        }
+    }
+
+    /**
+     * Extract ID from values array using metadata.
+     *
+     * @param array<string, mixed> $values
+     */
+    private function extractIdFromValues(object $entity, array $values): ?string
+    {
+        try {
+            $meta = $this->entityManager->getClassMetadata($entity::class);
+            $idFields = $meta->getIdentifierFieldNames();
+            $ids = [];
+
+            foreach ($idFields as $idField) {
+                if (!isset($values[$idField])) {
+                    return null;
+                }
+                $ids[] = (string) $values[$idField];
+            }
+
+            return implode(self::ENTITY_ID_SEPARATOR, $ids);
+        } catch (\Throwable) {
+            return null;
         }
     }
 
