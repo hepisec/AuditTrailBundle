@@ -217,7 +217,7 @@ class AuditServiceTest extends TestCase
     // ========================================
 
     /**
-     * Test 1: Invalid Action Validation
+     * Test 1: Invalid Action Validation.
      */
     public function testInvalidActionThrowsException(): void
     {
@@ -229,7 +229,7 @@ class AuditServiceTest extends TestCase
     }
 
     /**
-     * Test 2: Valid Actions
+     * Test 2: Valid Actions.
      */
     public function testAllValidActionsAreAccepted(): void
     {
@@ -250,7 +250,7 @@ class AuditServiceTest extends TestCase
     }
 
     /**
-     * Test 3: Invalid IP Address Validation
+     * Test 3: Invalid IP Address Validation.
      */
     public function testInvalidIpAddressThrowsException(): void
     {
@@ -262,7 +262,7 @@ class AuditServiceTest extends TestCase
     }
 
     /**
-     * Test 4: Valid IPv4 Address
+     * Test 4: Valid IPv4 Address.
      */
     public function testValidIpv4AddressIsAccepted(): void
     {
@@ -273,7 +273,7 @@ class AuditServiceTest extends TestCase
     }
 
     /**
-     * Test 5: Valid IPv6 Address
+     * Test 5: Valid IPv6 Address.
      */
     public function testValidIpv6AddressIsAccepted(): void
     {
@@ -285,7 +285,7 @@ class AuditServiceTest extends TestCase
     }
 
     /**
-     * Test 6: Null IP Address is Allowed
+     * Test 6: Null IP Address is Allowed.
      */
     public function testNullIpAddressIsAccepted(): void
     {
@@ -296,7 +296,7 @@ class AuditServiceTest extends TestCase
     }
 
     /**
-     * Test 7: Empty Entity Class Validation
+     * Test 7: Empty Entity Class Validation.
      */
     public function testEmptyEntityClassThrowsException(): void
     {
@@ -308,7 +308,7 @@ class AuditServiceTest extends TestCase
     }
 
     /**
-     * Test 8: Entity Class is Trimmed
+     * Test 8: Entity Class is Trimmed.
      */
     public function testEntityClassIsTrimmed(): void
     {
@@ -319,7 +319,7 @@ class AuditServiceTest extends TestCase
     }
 
     /**
-     * Test 9: Empty Entity ID Validation
+     * Test 9: Empty Entity ID Validation.
      */
     public function testEmptyEntityIdThrowsException(): void
     {
@@ -331,7 +331,7 @@ class AuditServiceTest extends TestCase
     }
 
     /**
-     * Test 10: Entity ID is Trimmed
+     * Test 10: Entity ID is Trimmed.
      */
     public function testEntityIdIsTrimmed(): void
     {
@@ -341,11 +341,8 @@ class AuditServiceTest extends TestCase
         $this->assertEquals('123', $log->getEntityId());
     }
 
-
-
-
     /**
-     * Test 12: Fluent Interface on Setters
+     * Test 12: Fluent Interface on Setters.
      */
     public function testSettersReturnSelfForFluentInterface(): void
     {
@@ -361,7 +358,7 @@ class AuditServiceTest extends TestCase
     }
 
     /**
-     * Test 13: Changed Fields Detection
+     * Test 13: Changed Fields Detection.
      */
     public function testChangedFieldsDetectionIgnoresUnchangedFields(): void
     {

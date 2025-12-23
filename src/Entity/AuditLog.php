@@ -179,13 +179,7 @@ class AuditLog
     public function setAction(string $action): self
     {
         if (!\in_array($action, self::VALID_ACTIONS, true)) {
-            throw new \InvalidArgumentException(
-                sprintf(
-                    'Invalid action "%s". Must be one of: %s',
-                    $action,
-                    implode(', ', self::VALID_ACTIONS)
-                )
-            );
+            throw new \InvalidArgumentException(sprintf('Invalid action "%s". Must be one of: %s', $action, implode(', ', self::VALID_ACTIONS)));
         }
 
         $this->action = $action;
@@ -240,9 +234,7 @@ class AuditLog
     public function setIpAddress(?string $ipAddress): self
     {
         if (null !== $ipAddress && !filter_var($ipAddress, FILTER_VALIDATE_IP)) {
-            throw new \InvalidArgumentException(
-                sprintf('Invalid IP address format: "%s"', $ipAddress)
-            );
+            throw new \InvalidArgumentException(sprintf('Invalid IP address format: "%s"', $ipAddress));
         }
 
         $this->ipAddress = $ipAddress;

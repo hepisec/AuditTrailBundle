@@ -135,6 +135,7 @@ class AuditService
         $this->enrichWithUserContext($auditLog);
 
         $auditLog->setCreatedAt($this->clock->now());
+
         return $auditLog;
     }
 
@@ -230,7 +231,7 @@ class AuditService
                     '_truncated' => true,
                     '_total_count' => $count,
                     '_sample' => array_map(
-                        fn($item) => $this->extractEntityIdentifier($item),
+                        fn ($item) => $this->extractEntityIdentifier($item),
                         $value->slice(0, self::MAX_COLLECTION_ITEMS)
                     ),
                 ];
@@ -357,7 +358,7 @@ class AuditService
             // Filter out null values and convert to strings
             $idValues = array_filter(
                 array_map('strval', $ids),
-                fn($id) => '' !== $id
+                fn ($id) => '' !== $id
             );
 
             return !empty($idValues)
@@ -424,15 +425,15 @@ class AuditService
 
             // Collection handling
             $value instanceof Collection => $value->map(function ($item) use ($depth) {
-                    return $this->serializeValue($item, $depth + 1);
-                })->toArray(),
+                return $this->serializeValue($item, $depth + 1);
+            })->toArray(),
 
             // Object handling
             \is_object($value) => $this->serializeObject($value, $depth),
 
             // Array handling with recursion protection
             \is_array($value) => array_map(
-                fn($v) => $this->serializeValue($v, $depth + 1),
+                fn ($v) => $this->serializeValue($v, $depth + 1),
                 $value
             ),
 

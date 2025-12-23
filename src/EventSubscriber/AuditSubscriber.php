@@ -53,7 +53,7 @@ final class AuditSubscriber implements ResetInterface
             return;
         }
 
-        $this->recursionDepth++;
+        ++$this->recursionDepth;
         try {
             $em = $args->getObjectManager();
             $uow = $em->getUnitOfWork();
@@ -141,7 +141,7 @@ final class AuditSubscriber implements ResetInterface
                 ];
             }
         } finally {
-            $this->recursionDepth--;
+            --$this->recursionDepth;
         }
     }
 
@@ -151,7 +151,7 @@ final class AuditSubscriber implements ResetInterface
             return;
         }
 
-        $this->recursionDepth++;
+        ++$this->recursionDepth;
         try {
             $em = $args->getObjectManager();
             $failedAudits = [];
@@ -252,7 +252,7 @@ final class AuditSubscriber implements ResetInterface
                 }
             }
         } finally {
-            $this->recursionDepth--;
+            --$this->recursionDepth;
         }
     }
 
@@ -318,12 +318,7 @@ final class AuditSubscriber implements ResetInterface
     private function checkAuditLimit(): void
     {
         if (\count($this->scheduledAudits) >= self::MAX_SCHEDULED_AUDITS) {
-            throw new \RuntimeException(
-                \sprintf(
-                    'Maximum audit queue size exceeded (%d). Consider batch processing or increase limit.',
-                    self::MAX_SCHEDULED_AUDITS
-                )
-            );
+            throw new \RuntimeException(\sprintf('Maximum audit queue size exceeded (%d). Consider batch processing or increase limit.', self::MAX_SCHEDULED_AUDITS));
         }
     }
 
@@ -362,6 +357,7 @@ final class AuditSubscriber implements ResetInterface
     {
         try {
             $this->transport->send($audit, $context);
+
             return true;
         } catch (\Throwable $e) {
             $this->logger?->error('Failed to send audit to transport', [

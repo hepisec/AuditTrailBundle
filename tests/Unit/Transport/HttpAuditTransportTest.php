@@ -10,7 +10,6 @@ use Rcsofttech\AuditTrailBundle\Entity\AuditLog;
 use Rcsofttech\AuditTrailBundle\Transport\HttpAuditTransport;
 use Symfony\Contracts\HttpClient\HttpClientInterface;
 use Symfony\Contracts\HttpClient\ResponseInterface;
-use PHPUnit\Framework\MockObject\MockObject;
 
 class HttpAuditTransportTest extends TestCase
 {

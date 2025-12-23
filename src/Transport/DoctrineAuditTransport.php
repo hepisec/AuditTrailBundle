@@ -55,6 +55,7 @@ final class DoctrineAuditTransport implements AuditTransportInterface
             $em->flush();
         }
 
+
         $entityId = $this->resolveEntityId($log, $context);
 
         if (null !== $entityId && $log->getId()) {

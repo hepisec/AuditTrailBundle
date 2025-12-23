@@ -77,6 +77,7 @@ class DoctrineAuditTransportTest extends TestCase
             'entity' => $entity,
         ]);
     }
+
     public function testSendPostFlushWithIsInsertUpdatesId(): void
     {
         $log = new AuditLog();

@@ -47,7 +47,8 @@
         "phpstan/phpstan-phpunit": "^2.0",
         "phpstan/extension-installer": "^1.4",
         "easycorp/easyadmin-bundle": "^4.27",
-        "phpstan/phpstan-doctrine": "^2.0"
+        "phpstan/phpstan-doctrine": "^2.0",
+        "spaze/phpstan-disallowed-calls": "^4.7"
     },
     "suggest": {
         "easycorp/easyadmin-bundle": "Required to use the provided AuditLogCrudController for a built-in dashboard."

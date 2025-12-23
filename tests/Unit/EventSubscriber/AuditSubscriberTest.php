@@ -89,7 +89,7 @@ class AuditSubscriberTest extends TestCase
 
         $transport->expects($this->once())
             ->method('send')
-            ->with($auditLog, $this->callback(fn($context) => 'post_flush' === $context['phase']));
+            ->with($auditLog, $this->callback(fn ($context) => 'post_flush' === $context['phase']));
 
         $subscriber->postFlush($postFlushArgs);
     }
@@ -189,7 +189,7 @@ class AuditSubscriberTest extends TestCase
 
     public function testSoftDeleteDetection(): void
     {
-        $entity = new class {
+        $entity = new class () {
             public ?\DateTimeInterface $deletedAt = null;
         };
         $entity->deletedAt = new \DateTimeImmutable();
@@ -238,7 +238,7 @@ class AuditSubscriberTest extends TestCase
                 'entity' => $entity,
                 'data' => ['id' => 1],
                 'is_managed' => true,
-            ]
+            ],
         ]);
 
         $em->expects($this->once())->method('persist');
@@ -290,7 +290,7 @@ class AuditSubscriberTest extends TestCase
                 'entity' => $entity,
                 'data' => ['id' => 1],
                 'is_managed' => false,
-            ]
+            ],
         ]);
 
         $em->expects($this->once())->method('persist');

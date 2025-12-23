@@ -41,7 +41,7 @@ class QueueAuditTransportTest extends TestCase
 
                 return true;
             }))
-            ->willReturnCallback(fn($message) => new Envelope($message));
+            ->willReturnCallback(fn ($message) => new Envelope($message));
 
         $this->transport->send($log, ['phase' => 'post_flush']);
     }

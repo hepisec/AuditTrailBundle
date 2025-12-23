@@ -13,7 +13,6 @@ final class HttpAuditTransport implements AuditTransportInterface
 {
     use PendingIdResolver;
 
-
     public function __construct(
         private HttpClientInterface $client,
         private readonly string $endpoint,
