@@ -41,8 +41,22 @@ final readonly class UserResolver implements UserResolverInterface
 
     public function getUserAgent(): ?string
     {
-        $request = $this->requestStack->getCurrentRequest();
+        if (!$this->trackUserAgent) {
+            return null;
+        }
 
-        return $this->trackUserAgent ? $request?->headers->get('User-Agent') : null;
+        $request = $this->requestStack->getCurrentRequest();
+        $ua = $request?->headers->get('User-Agent');
+
+        if (!$ua) {
+            return null;
+        }
+
+        // Simplify to "Chrome/138" instead of full noisy string
+        if (preg_match('/(Chrome|Firefox|Safari|Edge|Opera|MSIE|Trident)\/[\d.]+/', $ua, $matches)) {
+            return $matches[0];
+        }
+
+        return 'Unknown';
     }
 }
