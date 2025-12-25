@@ -8,6 +8,7 @@ use Doctrine\ORM\Mapping\ClassMetadata;
 use Psr\Clock\ClockInterface;
 use Psr\Log\LoggerInterface;
 use Rcsofttech\AuditTrailBundle\Attribute\Auditable;
+use Rcsofttech\AuditTrailBundle\Attribute\Sensitive;
 use Rcsofttech\AuditTrailBundle\Contract\UserResolverInterface;
 use Rcsofttech\AuditTrailBundle\Entity\AuditLog;
 
@@ -20,6 +21,9 @@ class AuditService
 
     /** @var array<string, Auditable|null> */
     private array $auditableCache = [];
+
+    /** @var array<string, array<string, string>> Maps class => field => mask */
+    private array $sensitiveFieldsCache = [];
 
     /**
      * @param array<string> $ignoredProperties
@@ -86,6 +90,14 @@ class AuditService
 
                 $value = $this->getFieldValueSafely($meta, $entity, $assoc);
                 $data[$assoc] = $this->serializeAssociation($value);
+            }
+
+            // Mask sensitive fields
+            $sensitiveFields = $this->getSensitiveFields($entity);
+            foreach ($sensitiveFields as $field => $mask) {
+                if (\array_key_exists($field, $data)) {
+                    $data[$field] = $mask;
+                }
             }
 
             return $data;
@@ -187,6 +199,66 @@ class AuditService
         }
 
         return array_unique($ignored);
+    }
+
+    /**
+     * Get sensitive fields for an entity class.
+     *
+     * Detects fields marked with:
+     * - #[Sensitive] attribute on the property itself
+     * - #[SensitiveParameter] on constructor parameters (for promoted properties)
+     *
+     * @return array<string, string> Map of field name => mask value
+     */
+    private function getSensitiveFields(object $entity): array
+    {
+        $class = $entity::class;
+
+        if (\array_key_exists($class, $this->sensitiveFieldsCache)) {
+            return $this->sensitiveFieldsCache[$class];
+        }
+
+        // Evict oldest if at limit
+        if (\count($this->sensitiveFieldsCache) >= self::MAX_AUDITABLE_CACHE) {
+            array_shift($this->sensitiveFieldsCache);
+        }
+
+        $sensitiveFields = [];
+
+        try {
+            $reflection = new \ReflectionClass($entity);
+
+            // Check #[Sensitive] on properties
+            foreach ($reflection->getProperties() as $property) {
+                $attributes = $property->getAttributes(Sensitive::class);
+                if (!empty($attributes)) {
+                    /** @var Sensitive $sensitive */
+                    $sensitive = $attributes[0]->newInstance();
+                    $sensitiveFields[$property->getName()] = $sensitive->mask;
+                }
+            }
+
+
+            // Check #[SensitiveParameter] on constructor parameters (for promoted properties)
+            $constructor = $reflection->getConstructor();
+            if (null !== $constructor) {
+                foreach ($constructor->getParameters() as $param) {
+                    $attributes = $param->getAttributes(\SensitiveParameter::class);
+                    if (!empty($attributes) && $param->isPromoted()) {
+                        // Only add if not already defined by #[Sensitive] (which allows custom mask)
+                        if (!isset($sensitiveFields[$param->getName()])) {
+                            $sensitiveFields[$param->getName()] = '**REDACTED**';
+                        }
+                    }
+                }
+            }
+        } catch (\ReflectionException $e) {
+            $this->logError('Failed to get sensitive fields', $e, ['class' => $class]);
+        }
+
+        $this->sensitiveFieldsCache[$class] = $sensitiveFields;
+
+        return $sensitiveFields;
     }
 
     /**

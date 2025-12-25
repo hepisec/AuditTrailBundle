@@ -9,6 +9,7 @@ use PHPUnit\Framework\TestCase;
 use Psr\Clock\ClockInterface;
 use Psr\Log\LoggerInterface;
 use Rcsofttech\AuditTrailBundle\Attribute\Auditable;
+use Rcsofttech\AuditTrailBundle\Attribute\Sensitive;
 use Rcsofttech\AuditTrailBundle\Contract\UserResolverInterface;
 use Rcsofttech\AuditTrailBundle\Entity\AuditLog;
 use Rcsofttech\AuditTrailBundle\Service\AuditService;
@@ -20,6 +21,69 @@ class TestEntity
     public function getId(): int
     {
         return 1;
+    }
+}
+
+/**
+ * Test entity with #[Sensitive] attribute on property.
+ */
+#[Auditable(enabled: true)]
+class SensitivePropertyEntity
+{
+    private string $name = 'John';
+
+    #[Sensitive]
+    private string $password = 'secret';
+
+    #[Sensitive(mask: '****')]
+    private string $ssn = '123-45-6789';
+
+    public function getId(): int
+    {
+        return 1;
+    }
+
+    public function getName(): string
+    {
+        return $this->name;
+    }
+
+    public function getPassword(): string
+    {
+        return $this->password;
+    }
+
+    public function getSsn(): string
+    {
+        return $this->ssn;
+    }
+}
+
+/**
+ * Test entity with #[SensitiveParameter] on constructor (promoted property).
+ */
+#[Auditable(enabled: true)]
+class SensitiveConstructorEntity
+{
+    public function __construct(
+        private string $name = 'John',
+        #[\SensitiveParameter] private string $apiKey = 'secret-key',
+    ) {
+    }
+
+    public function getId(): int
+    {
+        return 1;
+    }
+
+    public function getName(): string
+    {
+        return $this->name;
+    }
+
+    public function getApiKey(): string
+    {
+        return $this->apiKey;
     }
 }
 
@@ -403,5 +467,77 @@ class AuditServiceTest extends TestCase
 
         // Only 'name' changed
         $this->assertEquals(['name'], $log->getChangedFields());
+    }
+
+    // ========================================
+    // SENSITIVE FIELD MASKING TESTS
+    // ========================================
+
+    /**
+     * Test #[Sensitive] attribute masks fields with default value.
+     */
+    public function testSensitiveAttributeMasksFieldsWithDefaultValue(): void
+    {
+        $entityManager = $this->createMock(EntityManagerInterface::class);
+        $service = new AuditService(
+            $entityManager,
+            $this->userResolver,
+            $this->clock,
+            [],
+            [],
+            $this->logger
+        );
+
+        $entity = new SensitivePropertyEntity();
+        $metadata = $this->createStub(ClassMetadata::class);
+        $metadata->method('getFieldNames')->willReturn(['name', 'password', 'ssn']);
+        $metadata->method('getAssociationNames')->willReturn([]);
+        $metadata->method('getFieldValue')->willReturnCallback(fn ($e, $f) => match ($f) {
+            'name' => 'John',
+            'password' => 'secret',
+            'ssn' => '123-45-6789',
+            default => null,
+        });
+
+        $entityManager->expects($this->once())->method('getClassMetadata')->willReturn($metadata);
+
+        $data = $service->getEntityData($entity);
+
+        $this->assertEquals('John', $data['name']);
+        $this->assertEquals('**REDACTED**', $data['password']);
+        $this->assertEquals('****', $data['ssn']);
+    }
+
+    /**
+     * Test #[SensitiveParameter] on constructor masks promoted properties.
+     */
+    public function testSensitiveParameterMasksPromotedProperties(): void
+    {
+        $entityManager = $this->createMock(EntityManagerInterface::class);
+        $service = new AuditService(
+            $entityManager,
+            $this->userResolver,
+            $this->clock,
+            [],
+            [],
+            $this->logger
+        );
+
+        $entity = new SensitiveConstructorEntity();
+        $metadata = $this->createStub(ClassMetadata::class);
+        $metadata->method('getFieldNames')->willReturn(['name', 'apiKey']);
+        $metadata->method('getAssociationNames')->willReturn([]);
+        $metadata->method('getFieldValue')->willReturnCallback(fn ($e, $f) => match ($f) {
+            'name' => 'John',
+            'apiKey' => 'secret-key',
+            default => null,
+        });
+
+        $entityManager->expects($this->once())->method('getClassMetadata')->willReturn($metadata);
+
+        $data = $service->getEntityData($entity);
+
+        $this->assertEquals('John', $data['name']);
+        $this->assertEquals('**REDACTED**', $data['apiKey']);
     }
 }

@@ -11,6 +11,7 @@ A lightweight, high-performance Symfony bundle that automatically tracks and sto
 
 -   **Automatic Tracking**: Listens to Doctrine `onFlush` and `postFlush` events to capture inserts, updates, and deletions.
 -   **Zero Configuration**: Works out of the box with sensible defaults.
+-   **Sensitive Field Masking**: Automatically redacts fields marked with `#[SensitiveParameter]` or `#[Sensitive]`.
 -   **Multiple Transports**:
     -   **Doctrine**: Store audit logs directly in your database (default).
     -   **HTTP**: Send audit logs to an external API.
@@ -111,7 +112,38 @@ class Product
 }
 ```
 
-### 2. Viewing Audit Logs
+### 2. Masking Sensitive Fields
+
+Sensitive data is automatically masked in audit logs. The bundle supports two approaches:
+
+**Option 1: Use PHP's `#[SensitiveParameter]`** (for constructor-promoted properties)
+```php
+#[Auditable]
+class User
+{
+    public function __construct(
+        private string $email,
+        #[\SensitiveParameter] private string $password,  // Masked as "**REDACTED**"
+    ) {}
+}
+```
+
+**Option 2: Use `#[Sensitive]`** (for any property, with custom mask)
+```php
+use Rcsofttech\AuditTrailBundle\Attribute\Sensitive;
+
+#[Auditable]
+class User
+{
+    #[Sensitive]  // Masked as "**REDACTED**"
+    private string $apiKey;
+
+    #[Sensitive(mask: '****')]  // Custom mask
+    private string $ssn;
+}
+```
+
+### 3. Viewing Audit Logs
 
 If using the **Doctrine Transport**, you can query the `AuditLog` entity directly via the repository.
 
@@ -130,7 +162,7 @@ public function getLogs(EntityManagerInterface $em)
 }
 ```
 
-### 3. CLI Commands
+### 4. CLI Commands
 
 The bundle provides several commands for managing audit logs:
 
