@@ -13,7 +13,9 @@ use Doctrine\ORM\PersistentCollection;
 use Psr\Log\LoggerInterface;
 use Rcsofttech\AuditTrailBundle\Contract\AuditTransportInterface;
 use Rcsofttech\AuditTrailBundle\Entity\AuditLog;
+use Rcsofttech\AuditTrailBundle\Event\AuditLogCreatedEvent;
 use Rcsofttech\AuditTrailBundle\Service\AuditService;
+use Symfony\Contracts\EventDispatcher\EventDispatcherInterface;
 use Symfony\Contracts\Service\ResetInterface;
 
 #[AsDoctrineListener(event: Events::onFlush, priority: 1000)]
@@ -44,6 +46,7 @@ final class AuditSubscriber implements ResetInterface
         private readonly bool $deferTransportUntilCommit = true,
         private readonly bool $fallbackToDatabase = true,
         private readonly bool $enabled = true,
+        private readonly ?EventDispatcherInterface $eventDispatcher = null,
     ) {
     }
 
@@ -312,11 +315,26 @@ final class AuditSubscriber implements ResetInterface
             throw new \OverflowException(\sprintf('Maximum audit queue size exceeded (%d). Consider batch processing.', self::MAX_SCHEDULED_AUDITS));
         }
 
+        // Dispatch event to allow customization
+        $audit = $this->dispatchAuditCreatedEvent($entity, $audit);
+
         $this->scheduledAudits[] = [
             'entity' => $entity,
             'audit' => $audit,
             'is_insert' => $isInsert,
         ];
+    }
+
+    private function dispatchAuditCreatedEvent(object $entity, AuditLog $audit): AuditLog
+    {
+        if (null === $this->eventDispatcher) {
+            return $audit;
+        }
+
+        $event = new AuditLogCreatedEvent($audit, $entity);
+        $this->eventDispatcher->dispatch($event, AuditLogCreatedEvent::NAME);
+
+        return $event->getAuditLog();
     }
 
     private function shouldProcessEntity(object $entity): bool

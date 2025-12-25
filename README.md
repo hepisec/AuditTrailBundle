@@ -219,6 +219,30 @@ To offload audit logging to a worker, enable the queue transport and configure S
 
 By default, the bundle uses Symfony Security to resolve the user. If you have a custom authentication system, you can implement `UserResolverInterface` and decorate the service.
 
+### Custom Event Listeners
+
+The bundle dispatches a Symfony event when audit logs are created, allowing you to add custom logic:
+
+```php
+use Rcsofttech\AuditTrailBundle\Event\AuditLogCreatedEvent;
+use Symfony\Component\EventDispatcher\Attribute\AsEventListener;
+
+#[AsEventListener(event: AuditLogCreatedEvent::NAME)]
+class AuditLogListener
+{
+    public function __invoke(AuditLogCreatedEvent $event): void
+    {
+        $audit = $event->getAuditLog();
+        $entity = $event->getEntity();
+        
+        // Add custom metadata, send notifications, etc.
+        if ($event->getAction() === 'delete') {
+            // Send alert for deletions
+        }
+    }
+}
+```
+
 ## License
 
 MIT License.
