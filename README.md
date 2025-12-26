@@ -292,11 +292,22 @@ class AuditLogListener
 }
 ```
 
+### Audit Log CLI – List Command
+
+```shell
+// List audit logs for a specific transaction
+// bin/console audit:list --transaction=019b5aca-60ed-70bf-b139-255aa96c96cb
+//
+// Audit Logs (1 results)
+// ======================
+//
+// +----+--------+-----------+--------+-------------------+----------+---------------------+
+// | ID | Entity | Entity ID | Action | User              | Tx Hash  | Created At          |
+// +----+--------+-----------+--------+-------------------+----------+---------------------+
+// | 60 | Post   | 25        | create | oerdman@yahoo.com | 019b5aca | 2025-12-26 13:12:51 |
+// +----+--------+-----------+--------+-------------------+----------+---------------------+
+```
+
 ## License
 
 MIT License.
-
-## Screenshots
-
-### Audit Log CLI – List Command
-![Audit Log Command List](docs/images/command-list.png)
