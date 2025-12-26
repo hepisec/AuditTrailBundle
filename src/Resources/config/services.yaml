@@ -10,11 +10,11 @@ services:
       $deferTransportUntilCommit: '%audit_trail.defer_transport_until_commit%'
       $failOnTransportError: '%audit_trail.fail_on_transport_error%'
       $fallbackToDatabase: '%audit_trail.fallback_to_database%'
+      $tablePrefix: '%audit_trail.table_prefix%'
+      $tableSuffix: '%audit_trail.table_suffix%'
 
   Rcsofttech\AuditTrailBundle\:
     resource: '../../*'
     exclude:
       - '../../DependencyInjection/'
-      - '../../Entity/'
-      - '../../Resources/'
-      - '../../Transport/'
+

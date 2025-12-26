@@ -103,4 +103,17 @@ class AuditTrailExtensionTest extends TestCase
         $this->assertTrue($container->hasDefinition('rcsofttech_audit_trail.transport.chain'));
         $this->assertEquals('rcsofttech_audit_trail.transport.chain', (string) $container->getAlias(AuditTransportInterface::class));
     }
+
+    public function testTablePrefixSubscriberRegistration(): void
+    {
+        $container = new ContainerBuilder();
+        $extension = new AuditTrailExtension();
+
+        $config = [];
+        $extension->load($config, $container);
+
+        $this->assertTrue($container->hasDefinition('Rcsofttech\AuditTrailBundle\EventSubscriber\TablePrefixSubscriber'));
+        $definition = $container->getDefinition('Rcsofttech\AuditTrailBundle\EventSubscriber\TablePrefixSubscriber');
+        $this->assertTrue($definition->isAutoconfigured());
+    }
 }

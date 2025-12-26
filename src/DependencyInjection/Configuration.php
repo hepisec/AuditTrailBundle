@@ -21,6 +21,8 @@ final class Configuration implements ConfigurationInterface
             ->scalarPrototype()->end()
             ->defaultValue(['updatedAt', 'updated_at'])
             ->end()
+            ->scalarNode('table_prefix')->defaultValue('')->end()
+            ->scalarNode('table_suffix')->defaultValue('')->end()
             ->arrayNode('ignored_entities')
             ->scalarPrototype()->end()
             ->defaultValue([])
