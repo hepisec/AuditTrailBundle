@@ -50,6 +50,11 @@
         "phpstan/phpstan-doctrine": "^2.0",
         "spaze/phpstan-disallowed-calls": "^4.7"
     },
+    "autoload-dev": {
+        "psr-4": {
+            "Rcsofttech\\AuditTrailBundle\\Tests\\": "tests/"
+        }
+    },
     "suggest": {
         "easycorp/easyadmin-bundle": "Required to use the provided AuditLogCrudController for a built-in dashboard."
     },

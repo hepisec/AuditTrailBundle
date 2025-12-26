@@ -13,7 +13,6 @@ use Rcsofttech\AuditTrailBundle\Entity\AuditLog;
 use Rcsofttech\AuditTrailBundle\EventSubscriber\AuditSubscriber;
 use Rcsofttech\AuditTrailBundle\Service\AuditService;
 use Symfony\Component\Clock\MockClock;
-use PHPUnit\Framework\Attributes\CoversClass;
 
 #[Auditable]
 class SensitiveUser
@@ -29,14 +28,14 @@ class SensitiveUser
     public string $username = 'user';
 }
 
-#[CoversClass(AuditSubscriber::class)]
+
 class SensitiveDataUpdateTest extends TestCase
 {
     public function testUpdateMasksSensitiveData(): void
     {
         // Setup Service
-        $em = $this->createMock(EntityManagerInterface::class);
-        $userResolver = $this->createMock(\Rcsofttech\AuditTrailBundle\Contract\UserResolverInterface::class);
+        $em = $this->createStub(EntityManagerInterface::class);
+        $userResolver = $this->createStub(\Rcsofttech\AuditTrailBundle\Contract\UserResolverInterface::class);
         $clock = new MockClock();
 
         // We need a real AuditService to test the attribute reading logic,
@@ -58,13 +57,13 @@ class SensitiveDataUpdateTest extends TestCase
         $entity->password = 'new_secret';
 
         // Setup Doctrine Event
-        $uow = $this->createMock(UnitOfWork::class);
+        $uow = $this->createStub(UnitOfWork::class);
         $args = new OnFlushEventArgs($em);
 
         $em->method('getUnitOfWork')->willReturn($uow);
 
         // Mock ClassMetadata to avoid warnings and ensure getEntityId works
-        $metadata = $this->createMock(\Doctrine\ORM\Mapping\ClassMetadata::class);
+        $metadata = $this->createStub(\Doctrine\ORM\Mapping\ClassMetadata::class);
         $metadata->method('getIdentifierValues')->willReturn(['id' => 1]);
         $metadata->method('getName')->willReturn(SensitiveUser::class);
         $metadata->method('getFieldNames')->willReturn(['id', 'password', 'username']);

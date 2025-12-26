@@ -11,11 +11,11 @@ class ChainAuditTransportTest extends TestCase
 {
     public function testSupportsReturnsTrueIfAnyTransportSupportsPhase(): void
     {
-        $t1 = $this->createMock(AuditTransportInterface::class);
-        $t1->method('supports')->with('on_flush')->willReturn(true);
+        $t1 = $this->createStub(AuditTransportInterface::class);
+        $t1->method('supports')->willReturnMap([['on_flush', true]]);
 
-        $t2 = $this->createMock(AuditTransportInterface::class);
-        $t2->method('supports')->with('on_flush')->willReturn(false);
+        $t2 = $this->createStub(AuditTransportInterface::class);
+        $t2->method('supports')->willReturnMap([['on_flush', false]]);
 
         $chain = new ChainAuditTransport([$t1, $t2]);
 
@@ -24,11 +24,11 @@ class ChainAuditTransportTest extends TestCase
 
     public function testSupportsReturnsFalseIfNoTransportSupportsPhase(): void
     {
-        $t1 = $this->createMock(AuditTransportInterface::class);
-        $t1->method('supports')->with('on_flush')->willReturn(false);
+        $t1 = $this->createStub(AuditTransportInterface::class);
+        $t1->method('supports')->willReturnMap([['on_flush', false]]);
 
-        $t2 = $this->createMock(AuditTransportInterface::class);
-        $t2->method('supports')->with('on_flush')->willReturn(false);
+        $t2 = $this->createStub(AuditTransportInterface::class);
+        $t2->method('supports')->willReturnMap([['on_flush', false]]);
 
         $chain = new ChainAuditTransport([$t1, $t2]);
 

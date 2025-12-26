@@ -7,6 +7,9 @@ services:
       $enableHardDelete: '%audit_trail.enable_hard_delete%'
       $softDeleteField: '%audit_trail.soft_delete_field%'
       $enabled: '%audit_trail.enabled%'
+      $deferTransportUntilCommit: '%audit_trail.defer_transport_until_commit%'
+      $failOnTransportError: '%audit_trail.fail_on_transport_error%'
+      $fallbackToDatabase: '%audit_trail.fallback_to_database%'
 
   Rcsofttech\AuditTrailBundle\:
     resource: '../../*'

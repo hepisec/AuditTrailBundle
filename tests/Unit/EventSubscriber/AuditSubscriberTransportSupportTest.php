@@ -19,11 +19,11 @@ class AuditSubscriberTransportSupportTest extends TestCase
 {
     public function testOnFlushDefersWhenTransportDoesNotSupportIt(): void
     {
-        // Mocks
-        $auditService = $this->createMock(AuditService::class);
+        // Stubs for objects without expectations
+        $auditService = $this->createStub(AuditService::class);
         $transport = $this->createMock(AuditTransportInterface::class);
-        $em = $this->createMock(EntityManagerInterface::class);
-        $uow = $this->createMock(UnitOfWork::class);
+        $em = $this->createStub(EntityManagerInterface::class);
+        $uow = $this->createStub(UnitOfWork::class);
 
         // Setup Subscriber with deferTransportUntilCommit = false
         $subscriber = new AuditSubscriber(
@@ -52,7 +52,7 @@ class AuditSubscriberTransportSupportTest extends TestCase
 
         // Setup EntityManager & UnitOfWork
         $em->method('getUnitOfWork')->willReturn($uow);
-        $em->method('getClassMetadata')->willReturn($this->createMock(ClassMetadata::class));
+        $em->method('getClassMetadata')->willReturn($this->createStub(ClassMetadata::class));
         $uow->method('getScheduledEntityInsertions')->willReturn([]);
         $uow->method('getScheduledEntityUpdates')->willReturn([$entity]); // One update
         $uow->method('getScheduledCollectionUpdates')->willReturn([]);

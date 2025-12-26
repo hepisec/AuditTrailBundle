@@ -33,6 +33,9 @@ final class AuditTrailExtension extends Extension
         $container->setParameter('audit_trail.enable_soft_delete', $config['enable_soft_delete']);
         $container->setParameter('audit_trail.soft_delete_field', $config['soft_delete_field']);
         $container->setParameter('audit_trail.enable_hard_delete', $config['enable_hard_delete']);
+        $container->setParameter('audit_trail.defer_transport_until_commit', $config['defer_transport_until_commit']);
+        $container->setParameter('audit_trail.fail_on_transport_error', $config['fail_on_transport_error']);
+        $container->setParameter('audit_trail.fallback_to_database', $config['fallback_to_database']);
 
         $loader = new YamlFileLoader($container, new FileLocator(__DIR__.'/../Resources/config'));
         $loader->load('services.yaml');
