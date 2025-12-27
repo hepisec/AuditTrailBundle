@@ -179,7 +179,13 @@ public function getLogs(EntityManagerInterface $em)
 }
 ```
 
-### 4. CLI Commands
+### 4. Programmatic Audit Retrieval (Reader/Query API)
+
+[AuditReader Documentation](docs/AUDIT_READER.md)
+
+
+
+### 5. CLI Commands
 
 The bundle provides several commands for managing audit logs:
 
@@ -211,6 +217,20 @@ php bin/console audit:export --format=json --output=audits.json
 php bin/console audit:export --format=csv --entity=User --from="-30 days" -o audits.csv
 ```
 
+
+```shell
+// List audit logs for a specific transaction
+// bin/console audit:list --transaction=019b5aca-60ed-70bf-b139-255aa96c96cb
+//
+// Audit Logs (1 results)
+// ======================
+//
+// +----+--------+-----------+--------+-------------------+----------+---------------------+
+// | ID | Entity | Entity ID | Action | User              | Tx Hash  | Created At          |
+// +----+--------+-----------+--------+-------------------+----------+---------------------+
+// | 60 | Post   | 25        | create | oerdman@yahoo.com | 019b5aca | 2025-12-26 13:12:51 |
+// +----+--------+-----------+--------+-------------------+----------+---------------------+
+```
 ## EasyAdmin Integration
 
 This bundle comes with built-in support for [EasyAdmin](https://github.com/EasyCorp/EasyAdminBundle), allowing you to instantly view and filter audit logs in your dashboard.
@@ -290,22 +310,6 @@ class AuditLogListener
         }
     }
 }
-```
-
-### Audit Log CLI – List Command
-
-```shell
-// List audit logs for a specific transaction
-// bin/console audit:list --transaction=019b5aca-60ed-70bf-b139-255aa96c96cb
-//
-// Audit Logs (1 results)
-// ======================
-//
-// +----+--------+-----------+--------+-------------------+----------+---------------------+
-// | ID | Entity | Entity ID | Action | User              | Tx Hash  | Created At          |
-// +----+--------+-----------+--------+-------------------+----------+---------------------+
-// | 60 | Post   | 25        | create | oerdman@yahoo.com | 019b5aca | 2025-12-26 13:12:51 |
-// +----+--------+-----------+--------+-------------------+----------+---------------------+
 ```
 
 ## License
