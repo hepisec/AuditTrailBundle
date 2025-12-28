@@ -157,7 +157,7 @@ class AuditService
     }
 
     /**
-     * Get cached Auditable attribute for entity.
+     * Get cached Auditable attribute for entity, checking parent classes.
      */
     private function getAuditableAttribute(object $entity): ?Auditable
     {
@@ -173,12 +173,23 @@ class AuditService
         }
 
         try {
-            $reflection = new \ReflectionClass($entity);
-            $attributes = $reflection->getAttributes(Auditable::class);
+            $attribute = null;
+            $currentClass = $class;
 
-            $this->auditableCache[$class] = !empty($attributes)
-                ? $attributes[0]->newInstance()
-                : null;
+            // Traverse hierarchy to find attribute
+            while ($currentClass) {
+                $reflection = new \ReflectionClass($currentClass);
+                $attributes = $reflection->getAttributes(Auditable::class);
+
+                if (!empty($attributes)) {
+                    $attribute = $attributes[0]->newInstance();
+                    break;
+                }
+
+                $currentClass = get_parent_class($currentClass);
+            }
+
+            $this->auditableCache[$class] = $attribute;
         } catch (\ReflectionException $e) {
             $this->logError('Failed to get Auditable attribute', $e, ['class' => $class]);
             $this->auditableCache[$class] = null;
