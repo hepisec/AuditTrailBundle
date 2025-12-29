@@ -9,7 +9,9 @@ use Doctrine\ORM\Tools\SchemaTool;
 use Rcsofttech\AuditTrailBundle\Tests\Functional\Entity\TestEntity;
 use Symfony\Bundle\FrameworkBundle\Test\KernelTestCase;
 use Symfony\Component\HttpKernel\KernelInterface;
+use PHPUnit\Framework\Attributes\AllowMockObjectsWithoutExpectations;
 
+#[AllowMockObjectsWithoutExpectations]
 class TransactionSafetyTest extends KernelTestCase
 {
     protected static function getKernelClass(): string
@@ -104,11 +106,12 @@ class TransactionSafetyTest extends KernelTestCase
             $this->assertTrue($exceptionThrown, 'Flush should have failed due to transport exception.');
 
             // Verify Entity is NOT in Database (Rollback happened)
+            // Verify Entity is NOT in Database (Rollback happened)
             $em = $this->getFreshEntityManager($options);
             $savedEntity = $em->getRepository(TestEntity::class)->findOneBy(['name' => 'Atomic Test']);
             $this->assertNull($savedEntity, 'Entity should NOT be saved in Atomic mode if transport fails.');
-        } finally {
-            self::ensureKernelShutdown();
+        } catch (\Exception $e) {
+            throw $e;
         }
     }
 
@@ -143,8 +146,8 @@ class TransactionSafetyTest extends KernelTestCase
             $em = $this->getFreshEntityManager($options);
             $savedEntity = $em->getRepository(TestEntity::class)->findOneBy(['name' => 'Deferred Test']);
             $this->assertNotNull($savedEntity, 'Entity SHOULD be saved in Deferred mode even if transport fails.');
-        } finally {
-            self::ensureKernelShutdown();
+        } catch (\Exception $e) {
+            throw $e;
         }
     }
 
@@ -186,8 +189,8 @@ class TransactionSafetyTest extends KernelTestCase
             $em = $this->getFreshEntityManager($options);
             $savedEntity = $em->getRepository(TestEntity::class)->findOneBy(['name' => 'Deferred Fail Test']);
             $this->assertNotNull($savedEntity, 'Entity SHOULD be saved in Deferred mode even if transport fails and exception is thrown.');
-        } finally {
-            self::ensureKernelShutdown();
+        } catch (\Exception $e) {
+            throw $e;
         }
     }
 }

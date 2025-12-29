@@ -2,8 +2,9 @@
 
 declare(strict_types=1);
 
-namespace Rcsofttech\AuditTrailBundle\Tests\Query;
+namespace Rcsofttech\AuditTrailBundle\Tests\Unit\Query;
 
+use PHPUnit\Framework\Attributes\AllowMockObjectsWithoutExpectations;
 use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\TestCase;
 use Rcsofttech\AuditTrailBundle\Entity\AuditLog;
@@ -11,6 +12,7 @@ use Rcsofttech\AuditTrailBundle\Query\AuditEntry;
 use Rcsofttech\AuditTrailBundle\Query\AuditEntryCollection;
 
 #[CoversClass(AuditEntryCollection::class)]
+#[AllowMockObjectsWithoutExpectations()]
 class AuditEntryCollectionTest extends TestCase
 {
     public function testCountReturnsNumberOfEntries(): void

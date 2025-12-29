@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace Rcsofttech\AuditTrailBundle\Tests\Service;
+namespace Rcsofttech\AuditTrailBundle\Tests\Unit\Service;
 
 use PHPUnit\Framework\TestCase;
 use Rcsofttech\AuditTrailBundle\Service\TransactionIdGenerator;

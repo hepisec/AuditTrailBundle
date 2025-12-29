@@ -2,8 +2,9 @@
 
 declare(strict_types=1);
 
-namespace Rcsofttech\AuditTrailBundle\Tests\Query;
+namespace Rcsofttech\AuditTrailBundle\Tests\Unit\Query;
 
+use PHPUnit\Framework\Attributes\AllowMockObjectsWithoutExpectations;
 use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\MockObject\MockObject;
 use PHPUnit\Framework\TestCase;
@@ -12,6 +13,7 @@ use Rcsofttech\AuditTrailBundle\Query\AuditQuery;
 use Rcsofttech\AuditTrailBundle\Repository\AuditLogRepository;
 
 #[CoversClass(AuditQuery::class)]
+#[AllowMockObjectsWithoutExpectations()]
 class AuditQueryTest extends TestCase
 {
     private AuditLogRepository&MockObject $repository;

@@ -2,10 +2,11 @@
 
 declare(strict_types=1);
 
-namespace Rcsofttech\AuditTrailBundle\Tests\Query;
+namespace Rcsofttech\AuditTrailBundle\Tests\Unit\Query;
 
 use Doctrine\ORM\EntityManagerInterface;
 use Doctrine\ORM\Mapping\ClassMetadata;
+use PHPUnit\Framework\Attributes\AllowMockObjectsWithoutExpectations;
 use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\MockObject\MockObject;
 use PHPUnit\Framework\TestCase;
@@ -16,6 +17,7 @@ use Rcsofttech\AuditTrailBundle\Query\AuditReader;
 use Rcsofttech\AuditTrailBundle\Repository\AuditLogRepository;
 
 #[CoversClass(AuditReader::class)]
+#[AllowMockObjectsWithoutExpectations]
 class AuditReaderTest extends TestCase
 {
     private AuditLogRepository&MockObject $repository;

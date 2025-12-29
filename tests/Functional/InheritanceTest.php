@@ -11,7 +11,9 @@ use Rcsofttech\AuditTrailBundle\Tests\Functional\Entity\Car;
 use Rcsofttech\AuditTrailBundle\Tests\Functional\Entity\Dog;
 use Symfony\Bundle\FrameworkBundle\Test\KernelTestCase;
 use Symfony\Component\HttpKernel\KernelInterface;
+use PHPUnit\Framework\Attributes\AllowMockObjectsWithoutExpectations;
 
+#[AllowMockObjectsWithoutExpectations]
 class InheritanceTest extends KernelTestCase
 {
     protected static function getKernelClass(): string
@@ -23,6 +25,13 @@ class InheritanceTest extends KernelTestCase
     {
         parent::setUp();
         TestKernel::$useThrowingTransport = false;
+    }
+
+    protected function tearDown(): void
+    {
+        self::ensureKernelShutdown();
+        restore_exception_handler();
+        parent::tearDown();
     }
 
     /**
@@ -46,6 +55,7 @@ class InheritanceTest extends KernelTestCase
         $schemaTool->createSchema($metadata);
     }
 
+    #[AllowMockObjectsWithoutExpectations]
     public function testSTIInheritanceAudit(): void
     {
         self::bootKernel();
@@ -68,8 +78,11 @@ class InheritanceTest extends KernelTestCase
         $this->assertNotNull($newValues);
         $this->assertSame('Tesla Model S', $newValues['model']);
         $this->assertSame(4, $newValues['doors']);
+
+        self::ensureKernelShutdown();
     }
 
+    #[AllowMockObjectsWithoutExpectations]
     public function testJTIInheritanceAudit(): void
     {
         self::bootKernel();

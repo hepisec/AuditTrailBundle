@@ -217,6 +217,19 @@ php bin/console audit:export --format=json --output=audits.json
 php bin/console audit:export --format=csv --entity=User --from="-30 days" -o audits.csv
 ```
 
+#### View Diff
+```bash
+# View diff by Audit Log ID
+php bin/console audit:diff 123
+
+# View diff by Entity Short Name and ID (shows the latest log)
+php bin/console audit:diff User 42
+
+# Options
+php bin/console audit:diff 123 --include-timestamps  # Include createdAt/updatedAt
+php bin/console audit:diff 123 --json                # Output as JSON
+```
+
 
 ```shell
 // List audit logs for a specific transaction

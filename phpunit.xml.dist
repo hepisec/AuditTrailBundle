@@ -8,13 +8,17 @@
          displayDetailsOnTestsThatTriggerDeprecations="true"
          displayDetailsOnTestsThatTriggerErrors="true"
          displayDetailsOnTestsThatTriggerWarnings="true"
-         failOnNotice="true">
+         failOnNotice="true"
+         failOnRisky="false">
     <testsuites>
         <testsuite name="Unit">
             <directory>tests/Unit</directory>
         </testsuite>
         <testsuite name="Integration">
             <directory>tests/Integration</directory>
+        </testsuite>
+        <testsuite name="Functional">
+            <directory>tests/Functional</directory>
         </testsuite>
     </testsuites>
 
