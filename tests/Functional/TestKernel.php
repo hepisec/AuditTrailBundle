@@ -74,6 +74,7 @@ class TestKernel extends Kernel implements CompilerPassInterface
             'test' => true,
             'secret' => 'test',
             'php_errors' => ['log' => false, 'throw' => false],
+            'validation' => ['email_validation_mode' => 'html5'],
         ]);
 
         $c->loadFromExtension('security', [

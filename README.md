@@ -230,6 +230,19 @@ php bin/console audit:diff 123 --include-timestamps  # Include createdAt/updated
 php bin/console audit:diff 123 --json                # Output as JSON
 ```
 
+#### Revert Entity Changes
+```bash
+# Revert an entity to its state in a specific audit log
+php bin/console audit:revert 123
+
+# Preview the revert changes without applying them
+php bin/console audit:revert 123 --dry-run
+
+# Revert a creation (which deletes the entity) - requires force
+php bin/console audit:revert 123 --force
+```
+**Note:** The revert command automatically handles soft-deleted entities (if using Gedmo SoftDeleteable) by temporarily restoring them to apply changes.
+
 
 ```shell
 // List audit logs for a specific transaction

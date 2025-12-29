@@ -27,6 +27,7 @@ class AuditLog
     public const string ACTION_DELETE = 'delete';
     public const string ACTION_SOFT_DELETE = 'soft_delete';
     public const string ACTION_RESTORE = 'restore';
+    public const string ACTION_REVERT = 'revert';
 
     private const array VALID_ACTIONS = [
         self::ACTION_CREATE,
@@ -34,6 +35,7 @@ class AuditLog
         self::ACTION_DELETE,
         self::ACTION_SOFT_DELETE,
         self::ACTION_RESTORE,
+        self::ACTION_REVERT,
     ];
 
     #[ORM\Id, ORM\GeneratedValue, ORM\Column]
