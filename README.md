@@ -6,48 +6,95 @@
 [![Total Downloads](https://img.shields.io/packagist/dt/rcsofttech/audit-trail-bundle.svg)](https://packagist.org/packages/rcsofttech/audit-trail-bundle)
 [![Codacy Badge](https://app.codacy.com/project/badge/Grade/38d81ef3b38d4ea3976f5eb12c98e112)](https://app.codacy.com/gh/rcsofttech85/AuditTrailBundle/dashboard?utm_source=gh&utm_medium=referral&utm_content=&utm_campaign=Badge_grade)
 
-A lightweight, high-performance Symfony bundle that automatically tracks and stores Doctrine ORM entity changes for audit logging and compliance.
+**Enterprise-grade, high-performance audit trail solution for Symfony.**
+
+AuditTrailBundle is a modern, lightweight bundle that automatically tracks and stores Doctrine ORM entity changes. Built for performance and compliance, it uses a unique **Split-Phase Architecture** to ensure your application stays fast even under heavy load.
+
+---
+
+## Key Features
+
+- **High Performance**: Non-blocking audits using a **Split-Phase Architecture** (capture in `onFlush`, dispatch in `postFlush`).
+- **Multiple Transports**:
+  - **Doctrine**: Store logs in your local database (default).
+  - **HTTP**: Stream logs to external APIs (ELK, Splunk, etc.).
+  - **Queue**: Offload processing to **Symfony Messenger** (RabbitMQ, Redis).
+- **Deep Collection Tracking**: Tracks Many-to-Many and One-to-Many changes with precision (logs exact IDs).
+- **Sensitive Data Masking**: Native support for `#[SensitiveParameter]` and custom `#[Sensitive]` attributes for **GDPR compliance**.
+- **Safe Revert Support**: Easily roll back entities to any point in history, including associations.
+- **Modern Stack**: Built for **PHP 8.4+**, **Symfony 7.4+**, and **Doctrine ORM 3.0+**.
+
+---
+
+## Why AuditTrailBundle?
+
+Most Symfony audit solutions either:
+- Slow down Doctrine flush operations
+- Log incomplete transactional data
+- Cannot safely revert changes
+- Are hard to extend beyond database storage
+
+AuditTrailBundle is designed for **production-grade auditing** with:
+- **Minimal write overhead**: Split-phase architecture ensures your app stays fast.
+- **Transaction-aware logging**: Group related changes under a single transaction hash.
+- **Safe revert support**: Easily roll back entities to any point in history, including associations.
+- **Multiple transport strategies**: Store logs in DB, send to an API, or offload to a Queue (Messenger).
+
+---
 
 ## Architecture
 
 This bundle is built using a **Split-Phase Audit Architecture** to ensure high performance and reliability in Symfony applications.
+
+
+1.  **Phase 1 (Capture)**: Listens to Doctrine `onFlush` to capture changes without slowing down the transaction.
+2.  **Phase 2 (Dispatch)**: Dispatches audits in `postFlush` via your chosen transport.
+
 For a deep dive into the design decisions and how the split-phase approach works, check out the full article on Medium:
- [Designing a Split-Phase Audit Architecture for Symfony](https://medium.com/@rcsofttech85/designing-a-split-phase-audit-architecture-for-symfony-f4ff532491dc)
+[Designing a Split-Phase Audit Architecture for Symfony](https://medium.com/@rcsofttech85/designing-a-split-phase-audit-architecture-for-symfony-f4ff532491dc)
 
-## Features
+---
 
-- **Automatic Tracking**: Listens to Doctrine `onFlush` and `postFlush` events to capture inserts, updates, and deletions.
-- **Zero Configuration**: Works out of the box with sensible defaults.
-- **Sensitive Field Masking**: Automatically redacts fields marked with `#[SensitiveParameter]` or `#[Sensitive]`.
-- **Multiple Transports**:
-  - **Doctrine**: Store audit logs directly in your database (default).
-  - **HTTP**: Send audit logs to an external API.
-  - **Queue**: Dispatch audit logs via Symfony Messenger for async processing.
-  - **Chain**: Use multiple transports simultaneously.
-- **User Context**: Automatically captures the current user, IP address, and User Agent.
-- **Granular Control**: Use the `#[Auditable]` attribute to enable/disable auditing per entity and ignore specific properties.
-- **Modern PHP**: Built for PHP 8.4+ using strict types, readonly classes, and asymmetric visibility.
+## Quick Start
 
-## Requirements
+### 1. Installation
 
-- PHP 8.4+
-- Symfony 7.4+
-- Doctrine ORM 3.0+
+```bash
+composer require rcsofttech/audit-trail-bundle
+```
 
-## Installation
+### 2. Database Setup (Doctrine Transport)
 
-1. **Install the bundle via Composer:**
+If you are using the **Doctrine Transport** (default), update your database schema:
 
-    ```bash
-    composer require rcsofttech/audit-trail-bundle
-    ```
+```bash
+php bin/console make:migration
+php bin/console doctrine:migrations:migrate
+```
 
-2. **If you are using the **Doctrine Transport** (default), update your database schema:**
+### 3. Basic Usage
 
-    ```bash
-    php bin/console make:migration
-    php bin/console doctrine:migrations:migrate
-    ```
+Add the `#[Auditable]` attribute to any Doctrine entity you want to track.
+
+```php
+use Rcsofttech\AuditTrailBundle\Attribute\Auditable;
+
+#[ORM\Entity]
+#[Auditable(ignoredProperties: ['internalCode'])]
+class Product
+{
+    #[ORM\Id, ORM\GeneratedValue, ORM\Column]
+    private ?int $id = null;
+
+    #[ORM\Column]
+    private string $name;
+
+    #[ORM\Column]
+    private ?string $internalCode = null;
+}
+```
+
+---
 
 ## Configuration
 
@@ -108,253 +155,135 @@ audit_trail:
     fail_on_transport_error: false
 ```
 
-## Usage
+---
 
-### 1. Mark Entities as Auditable
+## Detailed Usage
 
-Add the `#[Auditable]` attribute to any Doctrine entity you want to track.
+### 1. Granular Control
+
+You can ignore specific properties or enable/disable auditing per entity via the class-level attribute.
 
 ```php
-use Doctrine\ORM\Mapping as ORM;
-use Rcsofttech\AuditTrailBundle\Attribute\Auditable;
-
-#[ORM\Entity]
-#[Auditable(enabled: true)] // <--- Add this
+#[Auditable(enabled: true, ignoredProperties: ['internalCode'])]
 class Product
 {
-    #[ORM\Id, ORM\GeneratedValue, ORM\Column]
-    private ?int $id = null;
-
-    #[ORM\Column]
-    private string $name;
-
-    #[ORM\Column]
-    #[Auditable(ignore: true)] // <--- Ignore specific properties
     private ?string $internalCode = null;
-
-    // ...
 }
 ```
 
 ### 2. Masking Sensitive Fields
 
-Sensitive data is automatically masked in audit logs. The bundle supports two approaches:
+Sensitive data is automatically masked in audit logs.
 
-**Option 1: Use PHP's `#[SensitiveParameter]`** (for constructor-promoted properties)
+**Option 1: Use PHP's `#[SensitiveParameter]`**
 
 ```php
-#[Auditable]
-class User
-{
-    public function __construct(
-        private string $email,
-        #[\SensitiveParameter] private string $password,  // Masked as "**REDACTED**"
-    ) {}
-}
+public function __construct(
+    #[\SensitiveParameter] private string $password,
+) {}
 ```
 
-**Option 2: Use `#[Sensitive]`** (for any property, with custom mask)
+**Option 2: Use `#[Sensitive]`**
 
 ```php
 use Rcsofttech\AuditTrailBundle\Attribute\Sensitive;
 
-#[Auditable]
-class User
-{
-    #[Sensitive]  // Masked as "**REDACTED**"
-    private string $apiKey;
-
-    #[Sensitive(mask: '****')]  // Custom mask
-    private string $ssn;
-}
+#[Sensitive(mask: '****')]
+private string $ssn;
 ```
 
-### 3. Viewing Audit Logs
+### 3. Programmatic Audit Retrieval (Reader / Query API)
 
-If using the **Doctrine Transport**, you can query the `AuditLog` entity directly via the repository.
+Read and query audit logs programmatically using a dedicated, read-only API.
 
-```php
-use Rcsofttech\AuditTrailBundle\Entity\AuditLog;
-use Doctrine\ORM\EntityManagerInterface;
+→ [Audit Reader Documentation (Symfony & Doctrine)](docs/symfony-audit-reader.md)
 
-public function getLogs(EntityManagerInterface $em)
-{
-    $logs = $em->getRepository(AuditLog::class)->findBy(
-        ['entityClass' => Product::class, 'entityId' => '123'],
-        ['createdAt' => 'DESC']
-    );
-    
-    // ...
-}
-```
+---
 
-### 4. Programmatic Audit Retrieval (Reader/Query API)
+## CLI Commands
 
-[AuditReader Documentation](docs/AUDIT_READER.md)
+The bundle provides several commands for managing audit logs.
 
-### 5. CLI Commands
 
-The bundle provides several commands for managing audit logs:
 
 #### List Audit Logs
-
 ```bash
-# List recent audit logs
-php bin/console audit:list
-
-# Filter by entity, action, user, or date
 php bin/console audit:list --entity=User --action=update --limit=50
-php bin/console audit:list --user=123 --from="-7 days"
 ```
 
 #### Purge Old Logs
-
 ```bash
-# Preview logs to delete (dry run)
-php bin/console audit:purge --before="30 days ago" --dry-run
-
-# Delete logs older than a date
-php bin/console audit:purge --before="2024-01-01" --force
+php bin/console audit:purge --before="30 days ago" --force
 ```
 
 #### Export Logs
-
 ```bash
-# Export to JSON
 php bin/console audit:export --format=json --output=audits.json
-
-# Export to CSV with filters
-php bin/console audit:export --format=csv --entity=User --from="-30 days" -o audits.csv
 ```
 
 #### View Diff
-
 ```bash
-# View diff by Audit Log ID
-php bin/console audit:diff 123
-
-# View diff by Entity Short Name and ID (shows the latest log)
 php bin/console audit:diff User 42
-
-# Options
-php bin/console audit:diff 123 --include-timestamps  # Include createdAt/updatedAt
-php bin/console audit:diff 123 --json                # Output as JSON
 ```
 
 #### Revert Entity Changes
 
+AuditTrailBundle provides a powerful **Point-in-Time Restore** capability, allowing you to undo accidental changes or recover data from any point in your audit history.
+
 ```bash
 # Revert an entity to its state in a specific audit log
 php bin/console audit:revert 123
-
-# Preview the revert changes without applying them
-php bin/console audit:revert 123 --dry-run
-
-# Revert a creation (which deletes the entity) - requires force
-php bin/console audit:revert 123 --force
 ```
 
-**Note:** The revert command automatically handles soft-deleted entities (if using Gedmo SoftDeleteable) by temporarily restoring them to apply changes.
+**Why it's "Safe":**
+- **Association Awareness**: Automatically handles entity relations and collections.
+- **Soft-Delete Support**: Temporarily restores soft-deleted entities to apply the revert.
+- **Dry Run Mode**: Preview exactly what will change before applying (`--dry-run`).
+- **Data Integrity**: Ensures the entity remains in a valid state after the rollback.
 
-```shell
-// List audit logs for a specific transaction
-// bin/console audit:list --transaction=019b5aca-60ed-70bf-b139-255aa96c96cb
-//
-// Audit Logs (1 results)
-// ======================
-//
-// +----+--------+-----------+--------+-------------------+----------+---------------------+
-// | ID | Entity | Entity ID | Action | User              | Tx Hash  | Created At          |
-// +----+--------+-----------+--------+-------------------+----------+---------------------+
-// | 60 | Post   | 25        | create | oerdman@yahoo.com | 019b5aca | 2025-12-26 13:12:51 |
-// +----+--------+-----------+--------+-------------------+----------+---------------------+
-```
+> [!TIP]
+> Use the revert feature for **emergency data recovery**, **undoing unauthorized changes**, or **restoring accidental deletions** with full confidence.
 
-## EasyAdmin Integration
+---
 
-This bundle comes with built-in support for [EasyAdmin](https://github.com/EasyCorp/EasyAdminBundle), allowing you to instantly view and filter audit logs in your dashboard.
+## Integrations
 
-### 1. Install EasyAdmin
-
-If you haven't already, install the bundle:
-
-```bash
-composer require easycorp/easyadmin-bundle
-```
-
-### 2. Register the Controller
+### EasyAdmin Integration
 
 Add the `AuditLogCrudController` to your `DashboardController`:
 
 ```php
 use Rcsofttech\AuditTrailBundle\Controller\Admin\AuditLogCrudController;
-use EasyCorp\Bundle\EasyAdminBundle\Config\MenuItem;
 
-public function configureMenuItems(): iterable
-{
-    yield MenuItem::linkToDashboard('Dashboard', 'fa fa-home');
-    
-    // Add the Audit Log menu item
-    yield MenuItem::linkToCrud('Audit Logs', 'fas fa-history', \Rcsofttech\AuditTrailBundle\Entity\AuditLog::class)
-        ->setController(AuditLogCrudController::class);
-}
+yield MenuItem::linkToCrud('Audit Logs', 'fas fa-history', AuditLog::class)
+    ->setController(AuditLogCrudController::class);
 ```
 
-That's it! You now have a read-only view of your audit logs with filtering by Entity, Action, User, and Date.
+---
 
-## Advanced Usage
+## Benchmarks
 
-### Using the Queue Transport
+| Operation | Time (mode) | Memory (peak) |
+| :--- | :--- | :--- |
+| **Audit Creation (Overhead)** | 1.66ms / flush | 11.25 MB |
+| **Baseline (Auditing Disabled)** | 0.68ms / flush | 10.41 MB |
+| **Audit Retrieval (10 logs)** | 5.60ms | 12.86 MB |
+| **Audit Purge (1000 logs)** | 44.14ms | 21.79 MB |
 
-To offload audit logging to a worker, enable the queue transport and configure Symfony Messenger.
+[View full benchmark report](docs/audit-log-benchmark.md)
 
-1. **Config**:
+---
 
-    ```yaml
-    audit_trail:
-        transports:
-            doctrine: false # Optional: disable DB storage
-            queue:
-                enabled: true
-    ```
+## Requirements
 
-2. **Messenger Transport**:
+- PHP 8.4+
+- Symfony 7.4+
+- Doctrine ORM 3.0+
 
-    ```yaml
-    framework:
-        messenger:
-            transports:
-                audit_trail: '%env(MESSENGER_TRANSPORT_DSN)%'
-    ```
-
-### Custom User Resolution
-
-By default, the bundle uses Symfony Security to resolve the user. If you have a custom authentication system, you can implement `UserResolverInterface` and decorate the service.
-
-### Custom Event Listeners
-
-The bundle dispatches a Symfony event when audit logs are created, allowing you to add custom logic:
-
-```php
-use Rcsofttech\AuditTrailBundle\Event\AuditLogCreatedEvent;
-use Symfony\Component\EventDispatcher\Attribute\AsEventListener;
-
-#[AsEventListener(event: AuditLogCreatedEvent::NAME)]
-class AuditLogListener
-{
-    public function __invoke(AuditLogCreatedEvent $event): void
-    {
-        $audit = $event->getAuditLog();
-        $entity = $event->getEntity();
-        
-        // Add custom metadata, send notifications, etc.
-        if ($event->getAction() === 'delete') {
-            // Send alert for deletions
-        }
-    }
-}
-```
+---
 
 ## License
 
 MIT License.
+
+---

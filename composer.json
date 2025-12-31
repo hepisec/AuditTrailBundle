@@ -1,16 +1,21 @@
 {
     "name": "rcsofttech/audit-trail-bundle",
-    "description": "A Symfony bundle that automatically tracks and stores Doctrine ORM entity changes for audit logging and compliance.",
+    "description": "Enterprise-grade, high-performance Symfony audit trail bundle. Automatically track Doctrine entity changes with split-phase architecture, multiple transports (HTTP, Queue, Doctrine), and sensitive data masking.",
     "type": "symfony-bundle",
     "license": "MIT",
     "keywords": [
         "symfony",
         "audit",
+        "audit-trail",
         "log",
         "doctrine",
-        "entity",
-        "tracking",
-        "history"
+        "entity-tracking",
+        "history",
+        "compliance",
+        "gdpr",
+        "high-performance",
+        "messenger",
+        "async-audit"
     ],
     "support": {
         "issues": "https://github.com/rcsofttech85/AuditTrailBundle/issues",
