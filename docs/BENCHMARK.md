@@ -3,6 +3,7 @@
 This document provides performance metrics for the `AuditTrailBundle` to demonstrate its efficiency in high-performance environments.
 
 ## Environment
+
 - **PHP**: 8.4.12
 - **Database**: SQLite (In-memory for tests)
 - **Benchmarking Tool**: [PHPBench](https://github.com/phpbench/phpbench)
@@ -18,9 +19,9 @@ This document provides performance metrics for the `AuditTrailBundle` to demonst
 
 ### Analysis
 
-1.  **Creation Overhead**: Enabling auditing adds approximately **1ms** of overhead per Doctrine `flush()` operation. This is highly efficient and suitable for most applications.
-2.  **Retrieval Performance**: Retrieving audit logs using the `AuditReader` is fast, taking only a few milliseconds even with hundreds of logs in the database.
-3.  **Purge Efficiency**: The `audit:purge` command can handle thousands of records in under 50ms, ensuring that maintenance tasks do not impact system performance.
+1. **Creation Overhead**: Enabling auditing adds approximately **1ms** of overhead per Doctrine `flush()` operation. This is highly efficient and suitable for most applications.
+2. **Retrieval Performance**: Retrieving audit logs using the `AuditReader` is fast, taking only a few milliseconds even with hundreds of logs in the database.
+3. **Purge Efficiency**: The `audit:purge` command can handle thousands of records in under 50ms, ensuring that maintenance tasks do not impact system performance.
 
 ## Time per Operation (ms)
 

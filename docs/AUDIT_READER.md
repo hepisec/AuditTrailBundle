@@ -3,6 +3,7 @@
 The **AuditReader** provides a fluent, immutable, and expressive API to query audit logs programmatically in your Symfony application.
 
 It is designed for:
+
 - Entity-level audit history
 - Advanced filtering (actions, users, fields, transactions)
 - Diff inspection
@@ -24,7 +25,6 @@ class UserController extends AbstractController
         private readonly AuditReaderInterface $auditReader
     ) {}
 }
-
 ```
 
 ## Get complete audit history for a specific entity instance
@@ -43,13 +43,11 @@ foreach ($history as $entry) {
         $entry->getCreatedAt()->format('Y-m-d H:i:s')
     );
 }
-
 ```
 
 ## Building Custom Queries
 
 ```php
-
 //Find all updates to User entities in the last 30 days
 
 $recentUpdates = $this->auditReader
@@ -71,22 +69,23 @@ $deletions = $this->auditReader
     )
     ->getResults();
 ```
+
 ## Find everything that happened in a single transaction
+
 ```php
 $transactionAudits = $this->auditReader
     ->byTransaction('019b5aca-60ed-70bf-b139-255aa96c96cb')
     ->getResults();
-
 ```
 
 ## Find updates where a specific field was changed
+
 ```php
 $emailChanges = $this->auditReader
     ->forEntity(User::class)
     ->updates()
     ->changedField('email')
     ->getResults();
-
 ```
 
 ## Working with Diffs
@@ -116,12 +115,11 @@ if ($entry) {
 
     $changedFields = $entry->getChangedFields(); // ['name', 'email']
 }
-
-
 ```
+
 ## Working with Collections
 
-```
+```php
 $audits = $this->auditReader
     ->forEntity(Order::class)
     ->between(
@@ -137,7 +135,6 @@ $audits = $this->auditReader
 $priceChanges = $audits->filter(
     fn ($entry) => $entry->hasFieldChanged('price')
 );
-
 ```
 
 ## Grouping results
@@ -148,9 +145,8 @@ $byAction = $audits->groupByAction();
 
 $byEntity = $audits->groupByEntity();
 // ['App\Entity\Order' => [...]]
-
-
 ```
+
 ## Collection utilities
 
 ```php
@@ -177,13 +173,10 @@ $hasDeletes = $this->auditReader
     ->forEntity(User::class)
     ->deletes()
     ->exists();
-
 ```
+
 ## Check if an entity has any audit history
 
 ```php
 $hasHistory = $this->auditReader->hasHistoryFor($entity);
 ```
-
-
-

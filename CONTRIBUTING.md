@@ -8,13 +8,13 @@ If you find a bug or have a feature request, please open an issue on GitHub. Pro
 
 ## Pull Requests
 
-1.  **Fork the repository** and create your branch from `main`.
-2.  **Install dependencies**: `composer install`.
-3.  **Make your changes**.
-4.  **Run tests**: `vendor/bin/phpunit`.
-5.  **Run static analysis**: `vendor/bin/phpstan analyse`.
-6.  **Fix coding standards**: `vendor/bin/php-cs-fixer fix`.
-7.  **Submit a pull request**.
+1. **Fork the repository** and create your branch from `main`.
+2. **Install dependencies**: `composer install`.
+3. **Make your changes**.
+4. **Run tests**: `vendor/bin/phpunit`.
+5. **Run static analysis**: `vendor/bin/phpstan analyse`.
+6. **Fix coding standards**: `vendor/bin/php-cs-fixer fix`.
+7. **Submit a pull request**.
 
 ## Coding Standards
 

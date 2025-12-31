@@ -60,6 +60,9 @@
     "suggest": {
         "easycorp/easyadmin-bundle": "Required to use the provided AuditLogCrudController for a built-in dashboard."
     },
+    "scripts": {
+        "lint:md": "npx -y markdownlint-cli2 \"**/*.md\" \"#vendor\""
+    },
     "config": {
         "allow-plugins": {
             "phpstan/extension-installer": true

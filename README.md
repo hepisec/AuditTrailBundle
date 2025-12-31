@@ -9,33 +9,33 @@ A lightweight, high-performance Symfony bundle that automatically tracks and sto
 
 ## Features
 
--   **Automatic Tracking**: Listens to Doctrine `onFlush` and `postFlush` events to capture inserts, updates, and deletions.
--   **Zero Configuration**: Works out of the box with sensible defaults.
--   **Sensitive Field Masking**: Automatically redacts fields marked with `#[SensitiveParameter]` or `#[Sensitive]`.
--   **Multiple Transports**:
-    -   **Doctrine**: Store audit logs directly in your database (default).
-    -   **HTTP**: Send audit logs to an external API.
-    -   **Queue**: Dispatch audit logs via Symfony Messenger for async processing.
-    -   **Chain**: Use multiple transports simultaneously.
--   **User Context**: Automatically captures the current user, IP address, and User Agent.
--   **Granular Control**: Use the `#[Auditable]` attribute to enable/disable auditing per entity and ignore specific properties.
--   **Modern PHP**: Built for PHP 8.4+ using strict types, readonly classes, and asymmetric visibility.
+- **Automatic Tracking**: Listens to Doctrine `onFlush` and `postFlush` events to capture inserts, updates, and deletions.
+- **Zero Configuration**: Works out of the box with sensible defaults.
+- **Sensitive Field Masking**: Automatically redacts fields marked with `#[SensitiveParameter]` or `#[Sensitive]`.
+- **Multiple Transports**:
+  - **Doctrine**: Store audit logs directly in your database (default).
+  - **HTTP**: Send audit logs to an external API.
+  - **Queue**: Dispatch audit logs via Symfony Messenger for async processing.
+  - **Chain**: Use multiple transports simultaneously.
+- **User Context**: Automatically captures the current user, IP address, and User Agent.
+- **Granular Control**: Use the `#[Auditable]` attribute to enable/disable auditing per entity and ignore specific properties.
+- **Modern PHP**: Built for PHP 8.4+ using strict types, readonly classes, and asymmetric visibility.
 
 ## Requirements
 
--   PHP 8.4+
--   Symfony 7.4+
--   Doctrine ORM 3.0+
+- PHP 8.4+
+- Symfony 7.4+
+- Doctrine ORM 3.0+
 
 ## Installation
 
-1.  Install the bundle via Composer:
+1. **Install the bundle via Composer:**
 
     ```bash
     composer require rcsofttech/audit-trail-bundle
     ```
 
-2.  If you are using the **Doctrine Transport** (default), update your database schema:
+2. **If you are using the **Doctrine Transport** (default), update your database schema:**
 
     ```bash
     php bin/console make:migration
@@ -134,6 +134,7 @@ class Product
 Sensitive data is automatically masked in audit logs. The bundle supports two approaches:
 
 **Option 1: Use PHP's `#[SensitiveParameter]`** (for constructor-promoted properties)
+
 ```php
 #[Auditable]
 class User
@@ -146,6 +147,7 @@ class User
 ```
 
 **Option 2: Use `#[Sensitive]`** (for any property, with custom mask)
+
 ```php
 use Rcsofttech\AuditTrailBundle\Attribute\Sensitive;
 
@@ -183,13 +185,12 @@ public function getLogs(EntityManagerInterface $em)
 
 [AuditReader Documentation](docs/AUDIT_READER.md)
 
-
-
 ### 5. CLI Commands
 
 The bundle provides several commands for managing audit logs:
 
 #### List Audit Logs
+
 ```bash
 # List recent audit logs
 php bin/console audit:list
@@ -200,6 +201,7 @@ php bin/console audit:list --user=123 --from="-7 days"
 ```
 
 #### Purge Old Logs
+
 ```bash
 # Preview logs to delete (dry run)
 php bin/console audit:purge --before="30 days ago" --dry-run
@@ -209,6 +211,7 @@ php bin/console audit:purge --before="2024-01-01" --force
 ```
 
 #### Export Logs
+
 ```bash
 # Export to JSON
 php bin/console audit:export --format=json --output=audits.json
@@ -218,6 +221,7 @@ php bin/console audit:export --format=csv --entity=User --from="-30 days" -o aud
 ```
 
 #### View Diff
+
 ```bash
 # View diff by Audit Log ID
 php bin/console audit:diff 123
@@ -231,6 +235,7 @@ php bin/console audit:diff 123 --json                # Output as JSON
 ```
 
 #### Revert Entity Changes
+
 ```bash
 # Revert an entity to its state in a specific audit log
 php bin/console audit:revert 123
@@ -241,8 +246,8 @@ php bin/console audit:revert 123 --dry-run
 # Revert a creation (which deletes the entity) - requires force
 php bin/console audit:revert 123 --force
 ```
-**Note:** The revert command automatically handles soft-deleted entities (if using Gedmo SoftDeleteable) by temporarily restoring them to apply changes.
 
+**Note:** The revert command automatically handles soft-deleted entities (if using Gedmo SoftDeleteable) by temporarily restoring them to apply changes.
 
 ```shell
 // List audit logs for a specific transaction
@@ -257,11 +262,13 @@ php bin/console audit:revert 123 --force
 // | 60 | Post   | 25        | create | oerdman@yahoo.com | 019b5aca | 2025-12-26 13:12:51 |
 // +----+--------+-----------+--------+-------------------+----------+---------------------+
 ```
+
 ## EasyAdmin Integration
 
 This bundle comes with built-in support for [EasyAdmin](https://github.com/EasyCorp/EasyAdminBundle), allowing you to instantly view and filter audit logs in your dashboard.
 
 ### 1. Install EasyAdmin
+
 If you haven't already, install the bundle:
 
 ```bash
@@ -269,6 +276,7 @@ composer require easycorp/easyadmin-bundle
 ```
 
 ### 2. Register the Controller
+
 Add the `AuditLogCrudController` to your `DashboardController`:
 
 ```php
@@ -293,7 +301,8 @@ That's it! You now have a read-only view of your audit logs with filtering by En
 
 To offload audit logging to a worker, enable the queue transport and configure Symfony Messenger.
 
-1.  **Config**:
+1. **Config**:
+
     ```yaml
     audit_trail:
         transports:
@@ -302,7 +311,8 @@ To offload audit logging to a worker, enable the queue transport and configure S
                 enabled: true
     ```
 
-2.  **Messenger Transport**:
+2. **Messenger Transport**:
+
     ```yaml
     framework:
         messenger:
