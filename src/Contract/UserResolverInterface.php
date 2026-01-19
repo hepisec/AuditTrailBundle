@@ -6,7 +6,7 @@ namespace Rcsofttech\AuditTrailBundle\Contract;
 
 interface UserResolverInterface
 {
-    public function getUserId(): ?int;
+    public function getUserId(): ?string;
 
     public function getUsername(): ?string;
 

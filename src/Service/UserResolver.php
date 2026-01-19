@@ -19,13 +19,13 @@ final readonly class UserResolver implements UserResolverInterface
     ) {
     }
 
-    public function getUserId(): ?int
+    public function getUserId(): ?string
     {
         $user = $this->security->getUser();
 
         return match (true) {
             null === $user => null,
-            method_exists($user, 'getId') => $user->getId(),
+            method_exists($user, 'getId') => (string) $user->getId(),
             default => null,
         };
     }
