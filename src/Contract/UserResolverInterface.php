@@ -14,7 +14,7 @@ interface UserResolverInterface
 
     public function getUserAgent(): ?string;
 
-    public function getImpersonatorId(): ?int;
+    public function getImpersonatorId(): ?string;
 
     public function getImpersonatorUsername(): ?string;
 }

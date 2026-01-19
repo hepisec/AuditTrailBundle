@@ -79,7 +79,7 @@ class AuditLog implements AuditLogInterface
     #[ORM\Column(type: Types::JSON, nullable: true)]
     public private(set) ?array $changedFields = null;
 
-    #[ORM\Column(nullable: true)]
+    #[ORM\Column(length: 255, nullable: true)]
     public private(set) ?string $userId = null;
 
     #[ORM\Column(length: 255, nullable: true)]

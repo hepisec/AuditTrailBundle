@@ -155,7 +155,7 @@ class AuditServiceTest extends TestCase
         $this->entityManager->method('getClassMetadata')->willReturn($metadata);
 
         $this->userResolver->method('getUserId')->willReturn('1');
-        $this->userResolver->method('getImpersonatorId')->willReturn(99);
+        $this->userResolver->method('getImpersonatorId')->willReturn('99');
         $this->userResolver->method('getImpersonatorUsername')->willReturn('admin');
 
         $log = $this->service->createAuditLog($entity, AuditLogInterface::ACTION_UPDATE, ['a' => 1], ['a' => 2]);
